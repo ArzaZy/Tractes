@@ -1,0 +1,37 @@
+import { useCallback, useEffect, useState } from 'react'
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
+
+/**
+ * Captures the browser's "install app" prompt (Chrome / Edge / Android). Safari on
+ * iOS has no such event; there, visitors use Share -> Add to Home Screen.
+ */
+export function useInstallPrompt() {
+  const [event, setEvent] = useState<BeforeInstallPromptEvent | null>(null)
+
+  useEffect(() => {
+    const onPrompt = (e: Event) => {
+      e.preventDefault()
+      setEvent(e as BeforeInstallPromptEvent)
+    }
+    const onInstalled = () => setEvent(null)
+    window.addEventListener('beforeinstallprompt', onPrompt)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onPrompt)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  const install = useCallback(async () => {
+    if (!event) return
+    await event.prompt()
+    await event.userChoice.catch(() => undefined)
+    setEvent(null)
+  }, [event])
+
+  return { canInstall: event !== null, install }
+}

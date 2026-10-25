@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="TracLabs" />
+    <meta name="theme-color" content="#09090d" />
+    <title>TracLabs — Your Digital Projects, One Place.</title>
+    <meta name="description" content="Discover useful tools, websites, and digital experiences built at TracLabs." />
+    <meta property="og:site_name" content="TracLabs" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="TracLabs — Your Digital Projects, One Place." />
+    <meta property="og:description" content="Discover useful tools, websites, and digital experiences built at TracLabs." />
+    <meta name="twitter:card" content="summary" />
+    <script>
+      // Apply stored theme before first paint to avoid a flash of the wrong theme.
+      try {
+        var t = localStorage.getItem('traclabs-theme');
+        document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>TracLabs needs JavaScript to browse the project directory.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

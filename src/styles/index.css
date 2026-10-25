@@ -1,0 +1,573 @@
+@import 'tailwindcss';
+
+/* Make the `dark:` variant follow our data-theme attribute instead of the OS setting. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+  Liquid glass design tokens.
+  Surfaces are translucent; blur, saturation and a specular edge highlight are
+  applied by the .glass* utilities below. Dark is the default theme.
+*/
+:root,
+:root[data-theme='dark'] {
+  --bg: #09090d;
+  --surface: rgba(255, 255, 255, 0.055);
+  --surface-2: rgba(255, 255, 255, 0.1);
+  --line: rgba(255, 255, 255, 0.14);
+  --fg: #f8fafc;
+  --muted: #aaa6bd;
+  --accent: #b69cfc;
+  --accent-strong: #7a4df0;
+  --mark-a: #b69cfc;
+  --mark-b: #f4f1f2;
+  --accent-fg: #ffffff;
+  --violet: #b69cfc;
+  --glow: rgba(150, 110, 255, 0.32);
+
+  --glass-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+  --glass-strong-bg: linear-gradient(145deg, rgba(44, 34, 78, 0.88), rgba(17, 13, 34, 0.94));
+  --glass-bar-bg: rgba(12, 10, 24, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-highlight: rgba(255, 255, 255, 0.32);
+  --glass-edge: rgba(0, 0, 0, 0.28);
+  --field-bg: rgba(8, 6, 18, 0.5);
+  --shadow: 0 10px 34px -10px rgba(0, 0, 0, 0.55);
+
+  --ambient-1: rgba(124, 77, 255, 0.3);
+  --ambient-2: rgba(182, 156, 252, 0.18);
+  --ambient-3: rgba(99, 102, 241, 0.16);
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f4f1fb;
+  --surface: rgba(255, 255, 255, 0.55);
+  --surface-2: rgba(15, 23, 42, 0.06);
+  --line: rgba(15, 23, 42, 0.12);
+  --fg: #130d24;
+  --muted: #5b5470;
+  --accent: #6d3df2;
+  --accent-strong: #5b2fd9;
+  --mark-a: #7a4df0;
+  --mark-b: #130d24;
+  --accent-fg: #ffffff;
+  --violet: #6d3df2;
+  --glow: rgba(109, 61, 242, 0.24);
+
+  --glass-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.46));
+  --glass-strong-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(247, 244, 255, 0.9));
+  --glass-bar-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-highlight: rgba(255, 255, 255, 1);
+  --glass-edge: rgba(15, 23, 42, 0.1);
+  --field-bg: rgba(255, 255, 255, 0.7);
+  --shadow: 0 10px 30px -12px rgba(60, 30, 120, 0.26);
+
+  --ambient-1: rgba(139, 92, 246, 0.26);
+  --ambient-2: rgba(182, 156, 252, 0.32);
+  --ambient-3: rgba(244, 114, 182, 0.12);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
+  --color-violet: var(--violet);
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --shadow-card: var(--shadow);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  /* Ambient colour fields that the glass refracts. Fixed, so they never cause layout or scroll cost. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(48rem 36rem at 12% -4%, var(--ambient-1), transparent 62%),
+      radial-gradient(42rem 34rem at 92% 6%, var(--ambient-2), transparent 60%),
+      radial-gradient(46rem 36rem at 78% 100%, var(--ambient-3), transparent 62%),
+      radial-gradient(34rem 28rem at 4% 88%, var(--ambient-1), transparent 65%);
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  dialog::backdrop {
+    backdrop-filter: blur(8px) saturate(120%);
+    -webkit-backdrop-filter: blur(8px) saturate(120%);
+  }
+}
+
+@layer components {
+  .container-page {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 640px) {
+    .container-page {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  /* ---- Liquid glass primitives ------------------------------------------------ */
+  .glass,
+  .glass-strong,
+  .card {
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    backdrop-filter: blur(22px) saturate(180%);
+    /* specular top edge + soft inner lower edge + drop shadow */
+    box-shadow:
+      inset 0 1px 0 var(--glass-highlight),
+      inset 0 -1px 0 var(--glass-edge),
+      var(--shadow);
+  }
+  .glass-strong {
+    background: var(--glass-strong-bg);
+    -webkit-backdrop-filter: blur(32px) saturate(190%);
+    backdrop-filter: blur(32px) saturate(190%);
+  }
+  .card {
+    position: relative; /* anchors the sheen; never set on .glass-strong (it is used on modal <dialog>s) */
+    border-radius: 1rem;
+  }
+  /* Sheen that follows the light source across the top of a card. */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.14) 0%, transparent 38%);
+    opacity: 0.7;
+  }
+  [data-theme='light'] .card::after {
+    opacity: 0.9;
+  }
+
+  .glass-bar {
+    background: var(--glass-bar-bg);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    backdrop-filter: blur(24px) saturate(190%);
+    border-color: var(--glass-border);
+    box-shadow: inset 0 -1px 0 var(--glass-edge), 0 8px 30px -18px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+  }
+  /* Page top: let the hero show through until the visitor scrolls. */
+  .glass-bar-top {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  /* ---- Logo tile: glass square with violet glow and a faint grid ------------------ */
+  .logo-tile {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem;
+    border-radius: 0.8rem;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    background:
+      radial-gradient(90% 90% at 25% 0%, rgba(150, 110, 255, 0.55), transparent 62%),
+      linear-gradient(160deg, #1d1540, #09090d);
+    box-shadow:
+      inset 0 1px 0 var(--glass-highlight),
+      0 6px 18px -6px var(--glow);
+  }
+  .logo-tile::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+    background-size: 6px 6px;
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, #000, transparent 75%);
+    mask-image: radial-gradient(circle at 50% 40%, #000, transparent 75%);
+  }
+  .logo-tile svg {
+    position: relative;
+    --mark-a: #b69cfc;
+    --mark-b: #f4f1f2;
+    filter: drop-shadow(0 0 6px rgba(182, 156, 252, 0.5));
+  }
+
+  /* Hero backdrop: aurora, a masked grid and a huge ghosted mark. */
+  .hero-backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .hero-backdrop::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 44px 44px;
+    -webkit-mask-image: radial-gradient(60% 70% at 50% 0%, #000, transparent 75%);
+    mask-image: radial-gradient(60% 70% at 50% 0%, #000, transparent 75%);
+    opacity: 0.55;
+  }
+  .hero-backdrop .hero-mark {
+    position: absolute;
+    left: 50%;
+    top: -2rem;
+    width: min(46rem, 120vw);
+    transform: translateX(-50%);
+    opacity: 0.07;
+    filter: blur(0.5px);
+  }
+  .hero-aurora {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(70px);
+    opacity: 0.55;
+    animation: aurora 14s ease-in-out infinite alternate;
+  }
+  @keyframes aurora {
+    from { transform: translate3d(-4%, 0, 0) scale(1); }
+    to { transform: translate3d(4%, 6%, 0) scale(1.12); }
+  }
+
+  /* ---- Desktop nav lens (glides to the hovered / active link) -------------------- */
+  .nav-lens {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .nav-lens.is-ready {
+    transition: transform 0.5s cubic-bezier(0.3, 1.4, 0.5, 1), width 0.4s cubic-bezier(0.3, 1.4, 0.5, 1), opacity 0.2s;
+  }
+  .nav-lens > span {
+    display: block;
+    height: 100%;
+    border-radius: 0.875rem;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.06));
+    border: 1px solid var(--glass-highlight);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 6px 16px -8px rgba(150, 110, 255, 0.5);
+  }
+  [data-theme='light'] .nav-lens > span {
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(109, 61, 242, 0.08));
+  }
+
+  /* ---- Cursor-following specular glint on cards ---------------------------------- */
+  .card-glint::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+    background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 0%), rgba(255, 255, 255, 0.22), transparent 65%);
+  }
+  @media (hover: hover) {
+    .card-glint:hover::before {
+      opacity: 1;
+    }
+  }
+
+  /* ---- Buttons ----------------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.18s, border-color 0.18s, color 0.18s, box-shadow 0.18s, transform 0.18s;
+    text-decoration: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    color: var(--accent-fg);
+    border-color: rgba(255, 255, 255, 0.28);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent-strong) 82%, white), var(--accent-strong));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+      0 8px 22px -8px var(--glow);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent-strong) 70%, white), color-mix(in srgb, var(--accent-strong) 88%, white));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+      0 10px 28px -6px var(--glow);
+  }
+  .btn-secondary {
+    color: var(--fg);
+    background: var(--glass-bg);
+    border-color: var(--glass-border);
+    -webkit-backdrop-filter: blur(14px) saturate(170%);
+    backdrop-filter: blur(14px) saturate(170%);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), inset 0 -1px 0 var(--glass-edge);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08));
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
+  }
+  [data-theme='light'] .btn-secondary:hover:not(:disabled) {
+    background: linear-gradient(145deg, #ffffff, rgba(255, 255, 255, 0.7));
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--fg);
+  }
+  .btn-danger {
+    background: linear-gradient(180deg, #ef4444, #b91c1c);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: linear-gradient(180deg, #f87171, #dc2626);
+  }
+  .btn-sm {
+    min-height: 2rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    border-radius: 0.75rem;
+  }
+
+  /* ---- Fields ------------------------------------------------------------------ */
+  .field {
+    width: 100%;
+    min-height: 2.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.875rem;
+    border: 1px solid var(--glass-border);
+    background: var(--field-bg);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.18);
+    color: var(--fg);
+    font-size: 0.9375rem;
+    transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+  }
+  .field::placeholder {
+    color: var(--muted);
+    opacity: 0.85;
+  }
+  .field:hover {
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
+  }
+  .field:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12), 0 0 0 3px var(--glow);
+  }
+  .field[aria-invalid='true'] {
+    border-color: #ef4444;
+  }
+
+  /* ---- Floating glass dock (mobile tab bar) with a sliding "lens" ---------------- */
+  .dock-wrap {
+    position: sticky;
+    bottom: 0;
+    z-index: 45;
+    height: 0;
+    pointer-events: none;
+  }
+  .dock {
+    position: absolute;
+    pointer-events: auto;
+    z-index: 45;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    max-width: 22rem;
+    margin-inline: auto;
+    padding: 0.25rem;
+    border-radius: 1.6rem;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    --lens-bg: linear-gradient(165deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.08));
+    --lens-glow: rgba(150, 110, 255, 0.45);
+  }
+  [data-theme='light'] .dock {
+    --lens-bg: linear-gradient(165deg, rgba(255, 255, 255, 0.95), rgba(109, 61, 242, 0.1));
+    --lens-glow: rgba(109, 61, 242, 0.3);
+  }
+  .dock-lens {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    pointer-events: none;
+    will-change: transform;
+    /* springy overshoot when the lens settles on a new item */
+    transition: transform 0.6s cubic-bezier(0.3, 1.5, 0.5, 1), opacity 0.2s;
+  }
+  .dock-lens.is-dragging {
+    transition: transform 0.07s linear, opacity 0.2s;
+  }
+  .dock-lens > span {
+    display: block;
+    height: 100%;
+    margin-inline: 0.1rem;
+    border-radius: 1.3rem;
+    background: var(--lens-bg);
+    border: 1px solid var(--glass-highlight);
+    box-shadow:
+      inset 0 1px 0 var(--glass-highlight),
+      inset 0 -10px 18px -10px var(--lens-glow),
+      0 8px 20px -8px var(--lens-glow);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  /* Finger down: the lens swells like a drop of liquid. */
+  .dock-lens.is-pressed > span {
+    transform: scale(1.16, 1.12);
+  }
+  .dock-item {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 2.75rem;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    border-radius: 1.3rem;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.625rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  .dock-item svg {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .dock-item.is-on {
+    color: var(--accent);
+  }
+  .dock-item.is-on svg {
+    transform: translateY(-1px) scale(1.12);
+  }
+
+  .skeleton {
+    background: linear-gradient(90deg, var(--surface-2), color-mix(in srgb, var(--surface-2) 55%, var(--glass-border)), var(--surface-2));
+    background-size: 200% 100%;
+    animation: shimmer 1.4s ease-in-out infinite;
+    border-radius: 0.75rem;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Browsers without backdrop-filter, or visitors who asked for less transparency,
+   get solid, fully legible surfaces instead of glass. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root,
+  :root[data-theme='dark'] {
+    --glass-bg: #111a30;
+    --glass-bar-bg: #0f0c1c;
+    --field-bg: #0f0c1c;
+  }
+  :root[data-theme='light'] {
+    --glass-bg: #ffffff;
+    --glass-bar-bg: #f8fafc;
+    --field-bg: #ffffff;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root,
+  :root[data-theme='dark'] {
+    --glass-bg: #111a30;
+    --glass-strong-bg: #111a30;
+    --glass-bar-bg: #0f0c1c;
+    --field-bg: #0f0c1c;
+  }
+  :root[data-theme='light'] {
+    --glass-bg: #ffffff;
+    --glass-strong-bg: #ffffff;
+    --glass-bar-bg: #f8fafc;
+    --field-bg: #ffffff;
+  }
+  .glass,
+  .glass-strong,
+  .card,
+  .glass-bar,
+  .btn-secondary,
+  .field {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
